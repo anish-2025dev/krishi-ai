@@ -5,7 +5,7 @@ const { protect, optionalAuth } = require('../middleware/auth');
 const router = express.Router();
 const genAI  = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-const getModel = () => genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+const getModel = () => genAI.getGenerativeModel({ model: 'gemini-pro' });
 
 // ── POST /api/ai/crop-recommend ──────────────────────────────────
 router.post('/crop-recommend', optionalAuth, async (req, res) => {
@@ -19,7 +19,7 @@ Farm Details:
 - Location/State: ${location || 'Rajasthan'}
 - Season: ${season || 'Rabi (Winter)'}
 - Water Availability: ${water_availability || 'Medium'}
-- Budget: ₹${budget || '20000'}
+- Budget: Rs.${budget || '20000'}
 - Land Area: ${land_acres || '2'} acres
 - Current Weather: ${current_weather || 'Moderate'}
 
@@ -29,7 +29,7 @@ Respond ONLY with a valid JSON array (no markdown, no extra text):
     "rank": 1,
     "crop": "Wheat",
     "hindi_name": "गेहूं",
-    "estimated_profit": "₹45,000",
+    "estimated_profit": "Rs.45,000",
     "profit_per_acre": 22500,
     "market_demand": "High",
     "risk_level": "Low",
@@ -40,7 +40,7 @@ Respond ONLY with a valid JSON array (no markdown, no extra text):
     "fertilizer_needed": "DAP + Urea",
     "match_score": 95,
     "reason": "Ideal for your soil and season",
-    "government_support": "MSP ₹2,275/quintal"
+    "government_support": "MSP Rs.2,275/quintal"
   }
 ]`;
 
@@ -82,7 +82,7 @@ Rules:
     const model = getModel();
     const chat  = model.startChat({
       history: history.map(m => ({
-        role: m.role,
+        role: m.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: m.content }],
       })),
       generationConfig: { maxOutputTokens: 600, temperature: 0.7 },
@@ -162,12 +162,12 @@ Respond ONLY with valid JSON:
   "expected_yield_quintals": 40,
   "yield_per_acre": 20,
   "quality_grade": "A",
-  "estimated_revenue": "₹88,000",
-  "estimated_cost": "₹32,000",
-  "estimated_profit": "₹56,000",
+  "estimated_revenue": "Rs.88,000",
+  "estimated_cost": "Rs.32,000",
+  "estimated_profit": "Rs.56,000",
   "profit_margin": "63%",
-  "msp_price": "₹2,275/quintal",
-  "market_price": "₹2,200/quintal",
+  "msp_price": "Rs.2,275/quintal",
+  "market_price": "Rs.2,200/quintal",
   "best_sell_month": "April-May",
   "risk_factors": ["Unseasonal rain", "Aphid attack"],
   "risk_probability": "20%",
