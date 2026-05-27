@@ -5,7 +5,7 @@ const { protect, optionalAuth } = require('../middleware/auth');
 const router = express.Router();
 const genAI  = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-const getModel = () => genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+const getModel = () => genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
 // ── POST /api/ai/crop-recommend ──────────────────────────────────
 router.post('/crop-recommend', optionalAuth, async (req, res) => {
