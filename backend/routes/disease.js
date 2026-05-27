@@ -19,7 +19,7 @@ router.post('/detect', optionalAuth, upload.single('image'), async (req, res) =>
     const base64    = Buffer.from(imageResp.data).toString('base64');
     const mimeType  = req.file.mimetype || 'image/jpeg';
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
+    const getModel = () => genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
 
     const prompt = `You are an expert plant pathologist and agricultural disease specialist. Analyze this crop/plant image carefully.
 
