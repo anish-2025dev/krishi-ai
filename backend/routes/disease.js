@@ -8,19 +8,18 @@ const axios = require('axios');
 const router = express.Router();
 const genAI  = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// POST /api/disease/detect  (multipart image upload)
+// POST /api/disease/detect
 router.post('/detect', optionalAuth, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'Please upload a crop image' });
 
     const imageUrl = req.file.path;
 
-    // Download image and convert to base64 for Gemini Vision
     const imageResp = await axios.get(imageUrl, { responseType: 'arraybuffer' });
     const base64    = Buffer.from(imageResp.data).toString('base64');
     const mimeType  = req.file.mimetype || 'image/jpeg';
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
 
     const prompt = `You are an expert plant pathologist and agricultural disease specialist. Analyze this crop/plant image carefully.
 
@@ -35,14 +34,14 @@ Respond ONLY with valid JSON (no markdown, no extra text):
   "severity_score": 6,
   "confidence": 87,
   "affected_parts": ["leaves", "stem"],
-  "symptoms": ["Orange-brown pustules on leaves", "Yellowing around pustules", "Premature leaf senescence"],
-  "causes": ["Puccinia triticina fungus", "High humidity", "Moderate temperatures 15-22°C"],
+  "symptoms": ["Orange-brown pustules on leaves", "Yellowing around pustules"],
+  "causes": ["Puccinia triticina fungus", "High humidity"],
   "spread_risk": "High - airborne spores spread quickly",
   "yield_loss_estimate": "15-30% if untreated",
-  "organic_treatment": ["Remove and destroy infected leaves", "Neem oil spray (5ml/L water)", "Trichoderma viride @ 4g/L"],
-  "chemical_treatment": ["Propiconazole 25% EC @ 1ml/L water", "Tebuconazole 250 EW @ 1ml/L water", "Mancozeb 75% WP @ 2.5g/L"],
+  "organic_treatment": ["Remove and destroy infected leaves", "Neem oil spray 5ml/L water"],
+  "chemical_treatment": ["Propiconazole 25% EC 1ml/L water", "Mancozeb 75% WP 2.5g/L"],
   "when_to_spray": "Early morning or evening, 2-3 sprays at 10-day intervals",
-  "prevention": ["Use resistant varieties like HD-2781", "Crop rotation", "Avoid excess nitrogen fertilizer"],
+  "prevention": ["Use resistant varieties", "Crop rotation"],
   "immediate_action": "Spray fungicide within 48 hours to prevent spread",
   "government_helpline": "Kisan Call Center: 1800-180-1551"
 }
@@ -55,10 +54,9 @@ If image is not a plant/crop, set crop_name: "Unknown" and disease_name: "Not a 
       { inlineData: { data: base64, mimeType } },
     ]);
 
-    const text   = result.response.text().replace(/```json|```/g, '').trim();
+    const text     = result.response.text().replace(/```json|```/g, '').trim();
     const analysis = JSON.parse(text);
 
-    // Save to DB if user is logged in
     let report = null;
     if (req.user) {
       report = await DiseaseReport.create({
